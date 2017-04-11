@@ -28,9 +28,8 @@ class TestSelectors(TestCase):
         self.assertGreaterEqual(model.n_components, 2)
 
     def test_select_bic_interface(self):
-        model = SelectorBIC(self.sequences, self.xlengths, 'FRANK').select()
-        self.assertGreaterEqual(model.n_components, 2)
-        model = SelectorBIC(self.sequences, self.xlengths, 'VEGETABLE').select()
+        model = SelectorBIC(self.sequences, self.xlengths, 'VEGETABLE', min_n_components=2,
+                            max_n_components=15).select()
         self.assertGreaterEqual(model.n_components, 2)
 
     def test_select_cv_interface(self):

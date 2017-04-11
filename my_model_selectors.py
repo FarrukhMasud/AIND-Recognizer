@@ -75,10 +75,18 @@ class SelectorBIC(ModelSelector):
         :return: GaussianHMM object
         """
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-        # TODO implement model selection based on BIC scores
-        raise NotImplementedError
-
+        x = None
+        p1 = -1.0
+        try:
+            for i in range(self.min_n_components, self.max_n_components):
+                m: GaussianHMM = self.base_model(i)
+                p = -2 * m.score(self.X, self.lengths) + m.n_components * 1 * np.log(m.n_features)
+                if p > p1:
+                    p1 = p
+                    x = m
+        except:
+            pass
+        return x
 
 class SelectorDIC(ModelSelector):
     ''' select best model based on Discriminative Information Criterion
@@ -91,9 +99,28 @@ class SelectorDIC(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
+        x = None
+        p1 = 0
+        p2 = -1
+        i = 0
+        try:
+            for i in range(self.min_n_components, self.max_n_components):
+                m: GaussianHMM = self.base_model(i)
+                p1 += m.score(self.X, self.lengths)
+        except:
+            pass
+        p1 = p1/i
 
-        # TODO implement model selection based on DIC scores
-        raise NotImplementedError
+        try:
+            for i in range(self.min_n_components, self.max_n_components):
+                m: GaussianHMM = self.base_model(i)
+                p = m.score(self.X, self.lengths) - p1
+                if p > p2 or x is None:
+                    p2 = p
+                    x = m
+        except:
+            pass
+        return x
 
 
 class SelectorCV(ModelSelector):
@@ -103,6 +130,16 @@ class SelectorCV(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
+        x = None
+        p1 = -1.0
+        try:
+            for i in range(self.min_n_components, self.max_n_components):
+                m: GaussianHMM = self.base_model(i)
 
-        # TODO implement model selection using CV
-        raise NotImplementedError
+                p = -2 * m.score(self.X, self.lengths) + m.n_components * 1 * np.log(m.n_features)
+                if p > p1:
+                    p1 = p
+                    x = m
+        except:
+            pass
+        return x

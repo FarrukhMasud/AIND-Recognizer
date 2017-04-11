@@ -1,5 +1,6 @@
 import warnings
 from asl_data import SinglesData
+from hmmlearn.hmm import GaussianHMM
 
 
 def recognize(models: dict, test_set: SinglesData):
@@ -21,5 +22,7 @@ def recognize(models: dict, test_set: SinglesData):
     probabilities = []
     guesses = []
     # TODO implement the recognizer
+    x:GaussianHMM  = models['']
+    x.
     # return probabilities, guesses
     raise NotImplementedError
