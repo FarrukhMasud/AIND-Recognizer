@@ -21,8 +21,24 @@ def recognize(models: dict, test_set: SinglesData):
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     probabilities = []
     guesses = []
-    # TODO implement the recognizer
-    x:GaussianHMM  = models['']
-    x.
-    # return probabilities, guesses
-    raise NotImplementedError
+
+    for i in range(test_set.num_items):
+        max_prob = -100000000
+        guess = ''
+        d = dict()
+        x = test_set.get_item_Xlengths(i)
+        for w in models:
+            if w in models:
+                m: GaussianHMM = models[w]
+                try:
+                    s = m.score(x[0], x[1])
+                    d[w] = s
+                    if s > max_prob:
+                        max_prob = s
+                        guess = w
+                except:
+                    d[w] = -100000000
+                    pass
+        probabilities.append(d)
+        guesses.append(guess)
+    return probabilities, guesses

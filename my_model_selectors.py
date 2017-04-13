@@ -80,7 +80,9 @@ class SelectorBIC(ModelSelector):
         try:
             for i in range(self.min_n_components, self.max_n_components):
                 m: GaussianHMM = self.base_model(i)
-                p = -2 * m.score(self.X, self.lengths) + m.n_components * 1 * np.log(m.n_features)
+                n, px = self.X.shape
+                score = m.score(self.X, self.lengths)
+                p = -2 * score + px * np.log(n)
                 if p > p1:
                     p1 = p
                     x = m
@@ -102,19 +104,20 @@ class SelectorDIC(ModelSelector):
         x = None
         p1 = 0
         p2 = -1
-        i = 0
+        j = 0
         try:
             for i in range(self.min_n_components, self.max_n_components):
                 m: GaussianHMM = self.base_model(i)
                 p1 += m.score(self.X, self.lengths)
+                j = i
         except:
             pass
-        p1 = p1/i
 
         try:
             for i in range(self.min_n_components, self.max_n_components):
                 m: GaussianHMM = self.base_model(i)
-                p = m.score(self.X, self.lengths) - p1
+                score = m.score(self.X, self.lengths)
+                p = score - ((p1 - score) / (j-1))
                 if p > p2 or x is None:
                     p2 = p
                     x = m
