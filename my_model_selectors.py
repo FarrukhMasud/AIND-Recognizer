@@ -83,7 +83,7 @@ class SelectorBIC(ModelSelector):
                 data_points, features = self.X.shape
                 free_parameters = (number_of_components * number_of_components) + (2 * number_of_components * features) - 1
                 score = m.score(self.X, self.lengths)
-                p = (-2 * score) + (free_parameters * np.log(data_points))
+                p = (-2 * score) + (free_parameters * math.log(data_points))
                 if p < p1:
                     p1 = p
                     x = m
