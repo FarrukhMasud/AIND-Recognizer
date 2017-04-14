@@ -1,5 +1,4 @@
 import math
-import statistics
 import warnings
 
 import numpy as np
@@ -153,10 +152,10 @@ class SelectorCV(ModelSelector):
                 for cv_train_idx, cv_test_idx in split_method.split(self.sequences):
                     train_x, train_length = combine_sequences(cv_train_idx, self.sequences)
                     test_x, test_length = combine_sequences(cv_test_idx, self.sequences)
-                    tmp_hmm_model = GaussianHMM(n_components=tmp_n, covariance_type="diag", n_iter=1000,
+                    model = GaussianHMM(n_components=tmp_n, covariance_type="diag", n_iter=1000,
                                                 random_state=self.random_state, verbose=False).fit(train_x,
                                                                                                    train_length)
-                    tmp_p += tmp_hmm_model.score(test_x, test_length)
+                    tmp_p += model.score(test_x, test_length)
                 if tmp_p > p:
                     p = tmp_p
                     n = tmp_n
