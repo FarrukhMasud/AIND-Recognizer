@@ -76,7 +76,7 @@ class SelectorBIC(ModelSelector):
         """
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         x = None
-        p1 = -1.0
+        p1 = 10000000000
         try:
             for number_of_components in range(self.min_n_components, self.max_n_components):
                 m: GaussianHMM = self.base_model(number_of_components)
@@ -138,16 +138,37 @@ class SelectorCV(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        x = None
-        p1 = -1.0
-        try:
-            for i in range(self.min_n_components, self.max_n_components):
-                m: GaussianHMM = self.base_model(i)
 
-                p = -2 * m.score(self.X, self.lengths) + m.n_components * 1 * np.log(m.n_features)
-                if p > p1:
-                    p1 = p
-                    x = m
+        n = None
+        p = float('-inf')
+
+        try:
+            split_method = KFold(n_splits=min(3, len(self.sequences)))
         except:
-            pass
-        return x
+            return None
+
+        for tmp_n in range(self.min_n_components, self.max_n_components + 1):
+            try:
+                tmp_p = 0
+                for cv_train_idx, cv_test_idx in split_method.split(self.sequences):
+                    train_x, train_length = combine_sequences(cv_train_idx, self.sequences)
+                    test_x, test_length = combine_sequences(cv_test_idx, self.sequences)
+                    tmp_hmm_model = GaussianHMM(n_components=tmp_n, covariance_type="diag", n_iter=1000,
+                                                random_state=self.random_state, verbose=False).fit(train_x,
+                                                                                                   train_length)
+                    tmp_p += tmp_hmm_model.score(test_x, test_length)
+                if tmp_p > p:
+                    p = tmp_p
+                    n = tmp_n
+            except:
+                pass
+
+        if self.verbose and n is None:
+            print('Error MIHMRNLR: this_word={}'.format(self.this_word))
+            return None
+
+        try:
+            return GaussianHMM(n_components=n, covariance_type="diag", n_iter=1000,
+                               random_state=self.random_state, verbose=False).fit(self.X, self.lengths)
+        except:
+            return None
