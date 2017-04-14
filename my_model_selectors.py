@@ -78,17 +78,19 @@ class SelectorBIC(ModelSelector):
         x = None
         p1 = -1.0
         try:
-            for i in range(self.min_n_components, self.max_n_components):
-                m: GaussianHMM = self.base_model(i)
-                n, px = self.X.shape
+            for number_of_components in range(self.min_n_components, self.max_n_components):
+                m: GaussianHMM = self.base_model(number_of_components)
+                data_points, features = self.X.shape
+                free_parameters = (number_of_components * number_of_components) + (2 * number_of_components * features) - 1
                 score = m.score(self.X, self.lengths)
-                p = -2 * score + px * np.log(n)
-                if p > p1:
+                p = (-2 * score) + (free_parameters * np.log(data_points))
+                if p < p1:
                     p1 = p
                     x = m
         except:
             pass
         return x
+
 
 class SelectorDIC(ModelSelector):
     ''' select best model based on Discriminative Information Criterion
@@ -101,28 +103,31 @@ class SelectorDIC(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
+        px = -10000000
         x = None
         p1 = 0
-        p2 = -1
+        p2 = -100000
         j = 0
-        try:
-            for i in range(self.min_n_components, self.max_n_components):
-                m: GaussianHMM = self.base_model(i)
-                p1 += m.score(self.X, self.lengths)
-                j = i
-        except:
-            pass
 
-        try:
-            for i in range(self.min_n_components, self.max_n_components):
-                m: GaussianHMM = self.base_model(i)
-                score = m.score(self.X, self.lengths)
-                p = score - ((p1 - score) / (j-1))
-                if p > p2 or x is None:
-                    p2 = p
-                    x = m
-        except:
-            pass
+        for i in range(self.min_n_components, self.max_n_components):
+            try:
+                model = self.base_model(i)
+                x1, lengths = self.hwords[self.this_word]
+                p3 = model.score(x1, lengths)
+
+                for word in self.hwords:
+                    if word != self.this_word:
+                        x1, lengths = self.hwords[word]
+                        score = model.score(x1, lengths)
+                        p2 += score
+                        j += 1
+                p2 /= float(j)
+                p1 = p3 - p2
+                if p1 > px:
+                    x = model
+                    px = p1
+            except:
+                pass
         return x
 
 
