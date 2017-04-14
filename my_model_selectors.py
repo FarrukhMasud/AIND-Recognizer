@@ -163,10 +163,6 @@ class SelectorCV(ModelSelector):
             except:
                 pass
 
-        if self.verbose and n is None:
-            print('Error MIHMRNLR: this_word={}'.format(self.this_word))
-            return None
-
         try:
             return GaussianHMM(n_components=n, covariance_type="diag", n_iter=1000,
                                random_state=self.random_state, verbose=False).fit(self.X, self.lengths)
